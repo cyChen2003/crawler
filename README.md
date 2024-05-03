@@ -48,5 +48,3 @@ CrawlHome是批量爬取个人主页所有视频和图片的启动程序
 https://www.douyin.com/user/MS4wLjABAAAAK8yyhMzdNAtyWqupVvVBXB_4bmr6DMAZ0zpGn91qlJU?vid=7124859220079561995
 https://www.douyin.com/user/MS4wLjABAAAAK8yyhMzdNAtyWqupVvVBXB_4bmr6DMAZ0zpGn91qlJU
 ```
-
-其他疑问请加qq1406823510
