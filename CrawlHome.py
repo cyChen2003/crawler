@@ -50,6 +50,13 @@ class CrawlHome(object):
             u = re.search(r'video/(\w+)', user_in)
             if u:
                 return u.group(1)
+            u = re.search(r'https://v.douyin.com/(\w+)/', user_in)
+            if u:
+                url = u.group(0)
+                res = self.session.get(url=url, headers=headers).url
+                uid = re.search(r'video/(\w+)', res)
+                if uid:
+                    return uid.group(1)
             return
         except Exception as e:
             return
@@ -76,6 +83,7 @@ class CrawlHome(object):
         self.get_comment(modal_id)
 
     def get_video_url(self, modal_id):
+        self.save_dict['aweme_id'] = modal_id
         url = f'https://www.douyin.com/aweme/v1/web/aweme/detail/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={modal_id}&&cookie_enabled=true&platform=PC'
         xbs = XBogusUtil.generate_url_with_xbs(url, headers.get('User-Agent'))
         url = url + '&X-Bogus=' + xbs
@@ -91,9 +99,13 @@ class CrawlHome(object):
         else:
             self.author_info['total_favorited'] = 0
         if json_str['aweme_detail']['video']['play_addr']['url_list'] is not None:
+
+            self.save_dict['video_desc'] = json_str['aweme_detail']['desc']
+            self.save_dict['ocr_content'] = json_str['aweme_detail']["seo_info"]["ocr_content"]
+            self.save_dict['keywords'] = json_str['aweme_detail']['caption']
             url = json_str['aweme_detail']['video']['play_addr']['url_list'][0]
             self.video_info_list.append({'video_desc': json_str['aweme_detail']['desc'], 'video_url': url,'aweme_id':modal_id})
-
+        self.save_dict['author_info'] = self.author_info
     # 默认开启睡眠
     def get_home_video(self, user_in, sleep=False):
         sec_uid = self.analyze_user_input(user_in)
@@ -140,8 +152,8 @@ class CrawlHome(object):
             if sleep:
                 Sleep.random_sleep()
     def get_comment(self, aweme_id):
-        self.save_dict['aweme_id'] = aweme_id
-        comments_url = f'https://www.douyin.com/aweme/v1/web/comment/list/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={aweme_id}&cookie_enabled=true&platform=PC&downlink=10&cursor=0&count=50'
+
+        comments_url = f'https://www.douyin.com/aweme/v1/web/comment/list/?device_platform=webapp&aid=6383&channel=channel_pc_web&aweme_id={aweme_id}&cookie_enabled=true&platform=PC&downlink=10&cursor=0&count=20'
         xbs = XBogusUtil.generate_url_with_xbs(comments_url, headers.get('User-Agent'))
         comments_url = comments_url + '&X-Bogus=' + xbs
         comments_json = self.session.get(comments_url, headers=headers).json()
@@ -149,8 +161,7 @@ class CrawlHome(object):
         if 'comments' in comments_json and comments_json['comments'] is not None:
             for comment in comments_json['comments']:
                 self.save_dict['comments'].append((comment['text'], comment['digg_count']))
-        #将author信息保存到save_dict
-        self.save_dict['author_info'] = self.author_info
+
     def get_author_info(self, sec_uid):
         user_info_url = f'https://www.douyin.com/aweme/v1/web/user/profile/other/?device_platform=webapp&aid=6383&channel=channel_pc_web&publish_video_strategy_type=2&source=channel_pc_web&sec_user_id={sec_uid}&cookie_enabled=true&platform=PC'
         xbs = XBogusUtil.generate_url_with_xbs(user_info_url, headers.get('User-Agent'))
@@ -163,6 +174,8 @@ class CrawlHome(object):
                 self.author_info['signature'] = '无'
             if json_str_user_info['user']['total_favorited'] is not None:
                 self.author_info['total_favorited'] = json_str_user_info['user']['total_favorited']
+        #将author信息保存到save_dict
+        self.save_dict['author_info'] = self.author_info
 async def save_to_disk(video_list, picture_list):
     count = 1
     tasks = []
@@ -231,7 +244,7 @@ def download_main(author_name, video_list, picture_list):
 
 if __name__ == '__main__':
     c = CrawlHome()
-    user_in = "https://www.douyin.com/video/7104870217888664864?modeFrom=userPost&secUid=MS4wLjABAAAAWiIai9YIWJkwFfJ7l0P5cUBFZc4mdwebY41OXgB71zYD7Sr8Fj0Xma7h6WKy29A3"
+    user_in = "4.38 04/28 i@C.ho qrR:/ “这乱糟糟的世界，只有你才是解药”# 创作灵感 # 怎能不怀念旅行 # 318川藏线 # 旅行才是浪漫第一名  https://v.douyin.com/i2jfHroV/ 复制此链接，打开Dou音搜索，直接观看视频！"
     print('开始解析请等待...')
     start_time = time.time()
     # c.get_home_video(user_in)
