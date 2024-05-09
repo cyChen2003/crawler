@@ -28,7 +28,7 @@ pip install aiohttp (异步http客户端)
 ```text
 1. 运行前请先关闭chrome浏览器!!!否则卡住无法获取浏览器里面的cookie
 2. 从chrome浏览器中获取cookie保存为config.ini文件
-python get_cookie_from_chrome.py
+打开抖音首页，点击审查元素-网络-找到Set-Cookie即可
 3. 爬取主程序,按照命令行操作进行
 python CrawlHome.py
 ```

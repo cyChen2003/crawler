@@ -244,7 +244,7 @@ def download_main(author_name, video_list, picture_list):
 
 if __name__ == '__main__':
     c = CrawlHome()
-    user_in = "4.38 04/28 i@C.ho qrR:/ “这乱糟糟的世界，只有你才是解药”# 创作灵感 # 怎能不怀念旅行 # 318川藏线 # 旅行才是浪漫第一名  https://v.douyin.com/i2jfHroV/ 复制此链接，打开Dou音搜索，直接观看视频！"
+    user_in = "https://www.douyin.com/video/7186582738806328628?modeFrom="
     print('开始解析请等待...')
     start_time = time.time()
     # c.get_home_video(user_in)
