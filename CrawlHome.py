@@ -40,6 +40,7 @@ class CrawlHome(object):
         self.picture_info_list = []
         self.author_name = ''
         self.author_info = {}
+        self.aweme_id = ''
         self.save_dict = {}
     def analyze_video_input(self, user_in):
         try:
@@ -176,7 +177,10 @@ class CrawlHome(object):
                 self.author_info['total_favorited'] = json_str_user_info['user']['total_favorited']
         #将author信息保存到save_dict
         self.save_dict['author_info'] = self.author_info
-async def save_to_disk(video_list, picture_list):
+async def save_to_disk(c):
+    #save_to_disk(video_list, picture_list):
+    video_list = c.video_info_list
+    picture_list = c.picture_info_list
     count = 1
     tasks = []
     # 协程限制5个并发
@@ -185,6 +189,7 @@ async def save_to_disk(video_list, picture_list):
         for i in video_list:
             url = i.get('video_url')
             aweme_id = i.get('aweme_id')
+            c.aweme_id = aweme_id
             # async with semaphore:
             task = asyncio.ensure_future(download_video(session, aweme_id, url))
             tasks.append(task)
@@ -221,7 +226,11 @@ async def download_pic(session, filename, url):
         print(ex)
 
 
-def download_main(author_name, video_list, picture_list):
+def download_main(c):
+    # download_main(c.author_name, c.video_info_list, c.picture_info_list)
+    author_name = c.author_name
+    video_list = c.video_info_list
+    picture_list = c.picture_info_list
     if not os.path.exists(author_name):
         os.mkdir(author_name)
     os.chdir(author_name)
@@ -229,7 +238,7 @@ def download_main(author_name, video_list, picture_list):
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(save_to_disk(video_list, picture_list))
+    loop.run_until_complete(save_to_disk(c))
     os.chdir("..")
     save_dir = os.path.join(os.getcwd(), author_name)
     # with open(f'{save_dir}/author.json', 'w', encoding='utf-8') as f:
@@ -238,13 +247,13 @@ def download_main(author_name, video_list, picture_list):
     json.dump(c.author_info, open(f'{save_dir}/author.json', 'w', encoding='utf-8'), ensure_ascii=False)
 
     #保存aweme_id信息
-    json.dump(c.save_dict, open(f'{save_dir}/aweme_id.json', 'w', encoding='utf-8'), ensure_ascii=False)
+    json.dump(c.save_dict, open(f'{save_dir}/{c.aweme_id}.json', 'w', encoding='utf-8'), ensure_ascii=False)
 
 # def download_
 
 if __name__ == '__main__':
     c = CrawlHome()
-    user_in = "https://www.douyin.com/video/7186582738806328628?modeFrom="
+    user_in = "https://www.douyin.com/video/7366934119026036031?modeFrom="
     print('开始解析请等待...')
     start_time = time.time()
     # c.get_home_video(user_in)
@@ -255,4 +264,4 @@ if __name__ == '__main__':
     # cost_time = format(end_time - start_time, '.2f')
     # print('下次完成，共花费时间' + cost_time + 's')
     c.get_video_info(user_in)
-    download_main(c.author_name, c.video_info_list, c.picture_info_list)
+    download_main(c)
